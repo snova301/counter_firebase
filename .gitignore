@@ -57,3 +57,7 @@ app.*.map.json
 .metadata
 .analysis_optional.yaml
 /memo/
+lib/firebase_options.dart
+
+analysis_options.yaml
+pubspec.lock
