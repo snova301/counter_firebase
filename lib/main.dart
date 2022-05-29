@@ -8,10 +8,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// 他ページのインポート
 import 'package:counter_firebase/normal_counter_page.dart';
 import 'package:counter_firebase/crash_page.dart';
+import 'package:counter_firebase/auth_page.dart';
+import 'package:counter_firebase/remote_config_page.dart';
 
 /// メイン
 void main() async {
@@ -36,7 +39,8 @@ void main() async {
 }
 
 /// Providerの初期化
-final counterProvider = StateNotifierProvider<Counter, int>((ref) {
+/// カウンター用のプロバイダー
+final counterProvider = StateNotifierProvider.autoDispose<Counter, int>((ref) {
   return Counter();
 });
 
@@ -70,6 +74,14 @@ class MyHomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
+        ref.watch(userEmailProvider.state).state = 'ログインしていません';
+      } else {
+        ref.watch(userEmailProvider.state).state = user.email!;
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Homepage'),
@@ -77,8 +89,21 @@ class MyHomePage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(10),
         children: <Widget>[
+          /// ユーザ情報の表示
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.person),
+              Text(ref.watch(userEmailProvider)),
+            ],
+          ),
+
+          /// 各ページへの遷移
           _PagePushButton(context, 'ノーマルカウンター', const NormalCounterPage()),
           _PagePushButton(context, 'クラッシュページ', const CrashPage()),
+          _PagePushButton(
+              context, 'Remote Configカウンター', const RemoteConfigPage()),
+          _PagePushButton(context, '認証ページ', const AuthPage()),
         ],
       ),
     );
