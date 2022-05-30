@@ -1,5 +1,6 @@
 /// Flutter関係のインポート
 import 'package:counter_firebase/firestore_page.dart';
+import 'package:counter_firebase/realtime_database_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
@@ -23,7 +24,9 @@ void main() async {
   runZonedGuarded<Future<void>>(() async {
     /// Firebaseの初期化
     WidgetsFlutterBinding.ensureInitialized();
+
     await Firebase.initializeApp(
+      name: 'counterFirebase',
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
@@ -116,6 +119,10 @@ class MyHomePage extends ConsumerWidget {
               ? _PagePushButton(context, 'Firestoreカウンター',
                   const FirestorePage(), Colors.green)
               : const Text('Firestoreカウンターを開くためには認証してください。'),
+          FirebaseAuth.instance.currentUser?.uid != null
+              ? _PagePushButton(context, 'Realtime Databaseカウンター',
+                  const RealtimeDatabasePage(), Colors.green)
+              : const Text('Realtime Databaseカウンターを開くためには認証してください。'),
         ],
       ),
     );
