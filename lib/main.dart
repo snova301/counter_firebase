@@ -1,4 +1,5 @@
 /// Flutter関係のインポート
+import 'package:counter_firebase/firestore_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
@@ -74,13 +75,16 @@ class MyHomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user == null) {
-        ref.watch(userEmailProvider.state).state = 'ログインしていません';
-      } else {
-        ref.watch(userEmailProvider.state).state = user.email!;
-      }
-    });
+    /// ログイン状態の確認
+    FirebaseAuth.instance.authStateChanges().listen(
+      (User? user) {
+        if (user == null) {
+          ref.watch(userEmailProvider.state).state = 'ログインしていません';
+        } else {
+          ref.watch(userEmailProvider.state).state = user.email!;
+        }
+      },
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -99,11 +103,19 @@ class MyHomePage extends ConsumerWidget {
           ),
 
           /// 各ページへの遷移
-          _PagePushButton(context, 'ノーマルカウンター', const NormalCounterPage()),
-          _PagePushButton(context, 'クラッシュページ', const CrashPage()),
           _PagePushButton(
-              context, 'Remote Configカウンター', const RemoteConfigPage()),
-          _PagePushButton(context, '認証ページ', const AuthPage()),
+              context, 'ノーマルカウンター', const NormalCounterPage(), Colors.blue),
+          _PagePushButton(context, 'クラッシュページ', const CrashPage(), Colors.blue),
+          _PagePushButton(context, 'Remote Configカウンター',
+              const RemoteConfigPage(), Colors.blue),
+          _PagePushButton(context, '認証ページ', const AuthPage(), Colors.red),
+
+          /// 各ページへの遷移(認証後利用可能)
+          /// 認証されていなかったらボタンを押せない状態にする
+          FirebaseAuth.instance.currentUser?.uid != null
+              ? _PagePushButton(context, 'Firestoreカウンター',
+                  const FirestorePage(), Colors.green)
+              : const Text('Firestoreカウンターを開くためには認証してください。'),
         ],
       ),
     );
@@ -112,16 +124,19 @@ class MyHomePage extends ConsumerWidget {
 
 /// ページ遷移ボタン
 class _PagePushButton extends Container {
-  _PagePushButton(BuildContext context, String buttonTitle, pagename)
+  _PagePushButton(
+      BuildContext context, String buttonTitle, pagename, Color bgColor)
       : super(
           padding: const EdgeInsets.all(10),
           child: ElevatedButton(
-            child: Text(buttonTitle),
             onPressed: () {
               AnalyticsService().logPage(buttonTitle);
               Navigator.push(
                   context, MaterialPageRoute(builder: (context) => pagename));
             },
+            style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(bgColor)),
+            child: Text(buttonTitle),
           ),
         );
 }
