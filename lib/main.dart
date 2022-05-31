@@ -1,6 +1,5 @@
 /// Flutter関係のインポート
-import 'package:counter_firebase/firestore_page.dart';
-import 'package:counter_firebase/realtime_database_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
@@ -8,6 +7,9 @@ import 'dart:async';
 /// Firebase関係のインポート
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:counter_firebase/cloud_storage.dart';
+import 'package:counter_firebase/firestore_page.dart';
+import 'package:counter_firebase/realtime_database_page.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,6 +20,11 @@ import 'package:counter_firebase/crash_page.dart';
 import 'package:counter_firebase/auth_page.dart';
 import 'package:counter_firebase/remote_config_page.dart';
 
+/// プラットフォームの確認
+final isAndroid =
+    defaultTargetPlatform == TargetPlatform.android ? true : false;
+final isIOS = defaultTargetPlatform == TargetPlatform.iOS ? true : false;
+
 /// メイン
 void main() async {
   /// クラッシュハンドラ
@@ -26,7 +33,7 @@ void main() async {
     WidgetsFlutterBinding.ensureInitialized();
 
     await Firebase.initializeApp(
-      name: 'counterFirebase',
+      name: isAndroid || isIOS ? 'counterFirebase' : null,
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
@@ -118,11 +125,24 @@ class MyHomePage extends ConsumerWidget {
           FirebaseAuth.instance.currentUser?.uid != null
               ? _PagePushButton(context, 'Firestoreカウンター',
                   const FirestorePage(), Colors.green)
-              : const Text('Firestoreカウンターを開くためには認証してください。'),
+              : Container(
+                  alignment: Alignment.center,
+                  child: const Text('Firestoreカウンターを開くためには認証してください。'),
+                ),
           FirebaseAuth.instance.currentUser?.uid != null
               ? _PagePushButton(context, 'Realtime Databaseカウンター',
                   const RealtimeDatabasePage(), Colors.green)
-              : const Text('Realtime Databaseカウンターを開くためには認証してください。'),
+              : Container(
+                  alignment: Alignment.center,
+                  child: const Text('Realtime Databaseカウンターを開くためには認証してください。'),
+                ),
+          FirebaseAuth.instance.currentUser?.uid != null
+              ? _PagePushButton(context, 'Cloud Storageページ',
+                  const CloudStoragePage(), Colors.green)
+              : Container(
+                  alignment: Alignment.center,
+                  child: const Text('Cloud Storageページを開くためには認証してください。'),
+                ),
         ],
       ),
     );
