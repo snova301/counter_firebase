@@ -120,7 +120,6 @@ void _signIn(WidgetRef ref, String id, String pass) async {
 
     /// ユーザ情報の更新
     ref.watch(userProvider.state).state = credential.user;
-    print(credential);
 
     /// 画面に表示
     ref.read(signInStateProvider.state).state = 'サインインできました!';

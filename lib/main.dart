@@ -13,17 +13,27 @@ import 'package:counter_firebase/realtime_database_page.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_app_installations/firebase_app_installations.dart';
+import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 
 /// 他ページのインポート
 import 'package:counter_firebase/normal_counter_page.dart';
 import 'package:counter_firebase/crash_page.dart';
 import 'package:counter_firebase/auth_page.dart';
 import 'package:counter_firebase/remote_config_page.dart';
+import 'package:counter_firebase/ml_page.dart';
 
 /// プラットフォームの確認
 final isAndroid =
     defaultTargetPlatform == TargetPlatform.android ? true : false;
 final isIOS = defaultTargetPlatform == TargetPlatform.iOS ? true : false;
+
+/// FCMバックグランドメッセージの設定
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print('Handling a background message: ${message.messageId}');
+}
 
 /// メイン
 void main() async {
@@ -31,6 +41,9 @@ void main() async {
   runZonedGuarded<Future<void>>(() async {
     /// Firebaseの初期化
     WidgetsFlutterBinding.ensureInitialized();
+
+    /// FCMのバックグランドメッセージを表示
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     await Firebase.initializeApp(
       name: isAndroid || isIOS ? 'counterFirebase' : null,
@@ -80,11 +93,30 @@ class MyApp extends StatelessWidget {
 }
 
 /// ホーム画面
-class MyHomePage extends ConsumerWidget {
+class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  MyHomePageState createState() => MyHomePageState();
+}
+
+class MyHomePageState extends ConsumerState<MyHomePage> {
+  @override
+  void initState() {
+    super.initState();
+
+    /// FCMのパーミッション設定
+    FirebaseMessagingService().setting();
+
+    /// FCMのトークン表示(テスト用)
+    FirebaseMessagingService().fcmGetToken();
+
+    /// Firebase ID取得(テスト用)
+    FirebaseInAppMessagingService().getFID();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     /// ログイン状態の確認
     FirebaseAuth.instance.authStateChanges().listen(
       (User? user) {
@@ -143,6 +175,9 @@ class MyHomePage extends ConsumerWidget {
                   alignment: Alignment.center,
                   child: const Text('Cloud Storageページを開くためには認証してください。'),
                 ),
+
+          /// 各ページの遷移(ML)
+          _PagePushButton(context, '機械学習ページ', const MLPage(), Colors.blue),
         ],
       ),
     );
@@ -178,5 +213,46 @@ class AnalyticsService {
         'firebase_screen': screenName,
       },
     );
+  }
+}
+
+/// Firebase Cloud Messageの設定
+class FirebaseMessagingService {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  /// webとiOS向け設定
+  void setting() async {
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
+    print('User granted permission: ${settings.authorizationStatus}');
+  }
+
+  void fcmGetToken() async {
+    /// モバイル向け
+    if (isAndroid || isIOS) {
+      final fcmToken = await messaging.getToken();
+      print(fcmToken);
+    }
+    // web向け
+    else {
+      final fcmToken = await messaging.getToken(
+          vapidKey: FirebaseOptionMessaging().webPushKeyPair);
+      print('web : $fcmToken');
+    }
+  }
+}
+
+class FirebaseInAppMessagingService {
+  void getFID() async {
+    String id = await FirebaseInstallations.instance.getId();
+    print('id : $id');
   }
 }
