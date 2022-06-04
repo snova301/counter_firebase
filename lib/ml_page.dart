@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
 
 /// Firebase
-import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
+// import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
 
 /// Providerの初期化
 final imageStateProvider = StateProvider<File?>((ref) => null);
@@ -149,32 +149,32 @@ class MLPageState extends ConsumerState<MLPage> {
   }
 }
 
-class FirebaseMLService {
-  Future<void> downloadModel(String modelname) async {
-    await FirebaseModelDownloader.instance
-        .getModel(
-            modelname,
-            FirebaseModelDownloadType.latestModel,
-            FirebaseModelDownloadConditions(
-              iosAllowsCellularAccess: true,
-              iosAllowsBackgroundDownloading: false,
-              androidChargingRequired: false,
-              androidWifiRequired: false,
-              androidDeviceIdleRequired: false,
-            ))
-        .then(
-      (customModel) {
-        // Download complete. Depending on your app, you could enable the ML
-        // feature, or switch from the local model to the remote model, etc.
+// class FirebaseMLService {
+//   Future<void> downloadModel(String modelname) async {
+//     await FirebaseModelDownloader.instance
+//         .getModel(
+//             modelname,
+//             FirebaseModelDownloadType.latestModel,
+//             FirebaseModelDownloadConditions(
+//               iosAllowsCellularAccess: true,
+//               iosAllowsBackgroundDownloading: false,
+//               androidChargingRequired: false,
+//               androidWifiRequired: false,
+//               androidDeviceIdleRequired: false,
+//             ))
+//         .then(
+//       (customModel) {
+//         // Download complete. Depending on your app, you could enable the ML
+//         // feature, or switch from the local model to the remote model, etc.
 
-        // The CustomModel object contains the local path of the model file,
-        // which you can use to instantiate a TensorFlow Lite interpreter.
-        final localModelPath = customModel.file;
-        print(customModel);
-        print(customModel.name);
-        print(customModel.size);
-        print(localModelPath);
-      },
-    );
-  }
-}
+//         // The CustomModel object contains the local path of the model file,
+//         // which you can use to instantiate a TensorFlow Lite interpreter.
+//         final localModelPath = customModel.file;
+//         print(customModel);
+//         print(customModel.name);
+//         print(customModel.size);
+//         print(localModelPath);
+//       },
+//     );
+//   }
+// }

@@ -16,6 +16,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_app_installations/firebase_app_installations.dart';
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 
 /// 他ページのインポート
 import 'package:counter_firebase/normal_counter_page.dart';
@@ -23,6 +25,7 @@ import 'package:counter_firebase/crash_page.dart';
 import 'package:counter_firebase/auth_page.dart';
 import 'package:counter_firebase/remote_config_page.dart';
 import 'package:counter_firebase/ml_page.dart';
+import 'package:counter_firebase/cloud_functions_page.dart';
 
 /// プラットフォームの確認
 final isAndroid =
@@ -52,6 +55,14 @@ void main() async {
 
     /// クラッシュハンドラ(Flutterフレームワーク内でスローされたすべてのエラー)
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+    /// Cloud Functionsのローカルエミュレータ設定
+    // FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
+
+    /// App Check
+    await FirebaseAppCheck.instance.activate(
+        // webRecaptchaSiteKey: 'recaptcha-v3-site-key',
+        );
 
     /// runApp w/ Riverpod
     runApp(const ProviderScope(child: MyApp()));
@@ -144,12 +155,15 @@ class MyHomePageState extends ConsumerState<MyHomePage> {
             ],
           ),
 
-          /// 各ページへの遷移
+          /// 各ページへの遷移(認証不要)
           _PagePushButton(
               context, 'ノーマルカウンター', const NormalCounterPage(), Colors.blue),
           _PagePushButton(context, 'クラッシュページ', const CrashPage(), Colors.blue),
           _PagePushButton(context, 'Remote Configカウンター',
               const RemoteConfigPage(), Colors.blue),
+          _PagePushButton(context, '機械学習ページ', const MLPage(), Colors.blue),
+
+          /// 認証ページへ遷移
           _PagePushButton(context, '認証ページ', const AuthPage(), Colors.red),
 
           /// 各ページへの遷移(認証後利用可能)
@@ -175,9 +189,13 @@ class MyHomePageState extends ConsumerState<MyHomePage> {
                   alignment: Alignment.center,
                   child: const Text('Cloud Storageページを開くためには認証してください。'),
                 ),
-
-          /// 各ページの遷移(ML)
-          _PagePushButton(context, '機械学習ページ', const MLPage(), Colors.blue),
+          FirebaseAuth.instance.currentUser?.uid != null
+              ? _PagePushButton(context, 'Cloud Functionsページ',
+                  const CloudFunctionsPage(), Colors.green)
+              : Container(
+                  alignment: Alignment.center,
+                  child: const Text('Cloud Functionsページを開くためには認証してください。'),
+                ),
         ],
       ),
     );

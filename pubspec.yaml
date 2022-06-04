@@ -60,7 +60,8 @@ dependencies:
   firebase_database: ^9.0.14
   cloud_functions: ^3.2.15
   firebase_app_installations: ^0.1.0+14
-  firebase_ml_model_downloader: ^0.1.0+14
+  # firebase_ml_model_downloader: ^0.1.0+14
+  firebase_app_check: ^0.0.6+13
 
 
 dev_dependencies:

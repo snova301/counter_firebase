@@ -1,6 +1,6 @@
 # counter_firebase
 
-Experiment of [Flutter](https://flutter.dev/) x [Firebase](https://firebase.google.com/)
+Test App of [Flutter](https://flutter.dev/) x [Firebase](https://firebase.google.com/)
 
 ## Blog
 

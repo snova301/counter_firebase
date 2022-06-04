@@ -62,3 +62,8 @@ lib/firebase_options.dart
 analysis_options.yaml
 pubspec.lock
 install.sh
+
+.firebaserc
+firebase.json
+functions/package-lock.json
+functions/package.json
