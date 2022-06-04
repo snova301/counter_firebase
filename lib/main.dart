@@ -60,9 +60,9 @@ void main() async {
     // FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
 
     /// App Check
-    await FirebaseAppCheck.instance.activate(
-        // webRecaptchaSiteKey: 'recaptcha-v3-site-key',
-        );
+    // await FirebaseAppCheck.instance.activate(
+    //     // webRecaptchaSiteKey: 'recaptcha-v3-site-key',
+    //     );
 
     /// runApp w/ Riverpod
     runApp(const ProviderScope(child: MyApp()));

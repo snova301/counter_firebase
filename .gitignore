@@ -64,6 +64,8 @@ pubspec.lock
 install.sh
 
 .firebaserc
+.firebase/
 firebase.json
 functions/package-lock.json
 functions/package.json
+assets/
