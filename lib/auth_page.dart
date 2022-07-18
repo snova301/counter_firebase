@@ -5,9 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Firebase関係のインポート
 import 'package:firebase_auth/firebase_auth.dart';
 
-/// Other Page
-import 'package:counter_firebase/main.dart';
-
 /// Authのサインイン状態のprovider
 final signInStateProvider = StateProvider((ref) => 'サインインまたはアカウントを作成してください');
 
@@ -29,8 +26,8 @@ class AuthPageState extends ConsumerState<AuthPage> {
     super.initState();
 
     /// 現在のユーザー情報
-    print(FirebaseAuth.instance.currentUser?.displayName);
-    print(FirebaseAuth.instance.currentUser?.email);
+    // print(FirebaseAuth.instance.currentUser?.displayName);
+    // print(FirebaseAuth.instance.currentUser?.email);
   }
 
   @override
@@ -91,7 +88,7 @@ class AuthPageState extends ConsumerState<AuthPage> {
             ),
           ),
 
-          /// ログイン状態の表示
+          /// サインインのメッセージ表示
           Container(
             padding: const EdgeInsets.all(10),
             child: Text('メッセージ : $singInStatus'),
@@ -161,7 +158,7 @@ void _createAccount(WidgetRef ref, String id, String pass) async {
 
     /// ユーザ情報の更新
     ref.watch(userProvider.state).state = credential.user;
-    print(credential);
+    // print(credential);
 
     /// 画面に表示
     ref.read(signInStateProvider.state).state = 'アカウント作成に成功しました!';

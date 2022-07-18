@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Other Page
+/// 他のページ
 import 'package:counter_firebase/main.dart';
 
 class NormalCounterPage extends ConsumerStatefulWidget {

@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-/// Other Page
+/// 他のページのインポート
 import 'package:counter_firebase/main.dart';
 
 class RealtimeDatabasePage extends ConsumerStatefulWidget {

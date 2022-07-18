@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Firebase関係のインポート
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
-/// Other Page
+/// 他のページ
 import 'package:counter_firebase/main.dart';
 
 class RemoteConfigPage extends ConsumerStatefulWidget {
@@ -26,8 +26,6 @@ class RemoteConfigPageState extends ConsumerState<RemoteConfigPage> {
 
   @override
   Widget build(BuildContext context) {
-    final counter = ref.watch(counterProvider);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Homepage'),
@@ -37,20 +35,12 @@ class RemoteConfigPageState extends ConsumerState<RemoteConfigPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             /// Remote Configのデータ取得
-            Text(FirebaseRemoteConfig.instance.getString("example_param")),
             Text(
-              '$counter',
+              FirebaseRemoteConfig.instance.getString("example_param"),
               style: Theme.of(context).textTheme.headline4,
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ref.read(counterProvider.notifier).increment();
-        },
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }
@@ -70,7 +60,7 @@ class FirebaseRemoteConfigService {
 
     /// アプリ内デフォルトパラメータ値の設定
     await remoteConfig.setDefaults(const {
-      "example_param": "Hello, world!",
+      "example_param": "0",
     });
 
     /// 値をフェッチ

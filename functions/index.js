@@ -5,11 +5,11 @@ admin.initializeApp({credential: admin.credential.applicationDefault(),});
 
 exports.functionsTest = functions.https.onCall(async(data, context) => {
   /// App Checkの実施
-  if (context.app == undefined) {
-        throw new functions.https.HttpsError(
-            'failed-precondition',
-            'The function must be called from an App Check verified app.')
-      }
+  // if (context.app == undefined) {
+  //       throw new functions.https.HttpsError(
+  //           'failed-precondition',
+  //           'The function must be called from an App Check verified app.')
+  //     }
 
   /// 数値読み取り
   const firstNumber = data.firstNumber;

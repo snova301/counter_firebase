@@ -18,12 +18,12 @@ class CloudFunctionsPageState extends State<CloudFunctionsPage> {
   /// Cloud Functionsの実行
   void addNumber() async {
     try {
-      /// 数を
+      /// カウントアップの関数の読み出し
       final result = await FirebaseFunctions.instance
           .httpsCallable('functionsTest')
           .call({'firstNumber': _number, 'secondNumber': 1});
       _number = result.data['addNumber'];
-      print(result.data['contextUid']);
+      // print(result.data['contextUid']);
     } on FirebaseFunctionsException catch (error) {
       print(error.code);
       print(error.details);

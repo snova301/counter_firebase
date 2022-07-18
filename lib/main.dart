@@ -1,31 +1,30 @@
 /// Flutter関係のインポート
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:async';
 
 /// Firebase関係のインポート
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:counter_firebase/cloud_storage.dart';
-import 'package:counter_firebase/firestore_page.dart';
-import 'package:counter_firebase/realtime_database_page.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:counter_firebase/remote_config_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_app_installations/firebase_app_installations.dart';
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 
 /// 他ページのインポート
 import 'package:counter_firebase/normal_counter_page.dart';
 import 'package:counter_firebase/crash_page.dart';
 import 'package:counter_firebase/auth_page.dart';
-import 'package:counter_firebase/remote_config_page.dart';
-import 'package:counter_firebase/ml_page.dart';
+import 'package:counter_firebase/firestore_page.dart';
+import 'package:counter_firebase/realtime_database_page.dart';
+import 'package:counter_firebase/cloud_storage.dart';
 import 'package:counter_firebase/cloud_functions_page.dart';
+import 'package:counter_firebase/ml_page.dart';
 
 /// プラットフォームの確認
 final isAndroid =
@@ -38,20 +37,17 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('Handling a background message: ${message.messageId}');
 }
 
-/// メイン
 void main() async {
   /// クラッシュハンドラ
   runZonedGuarded<Future<void>>(() async {
     /// Firebaseの初期化
     WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
     /// FCMのバックグランドメッセージを表示
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    await Firebase.initializeApp(
-      name: isAndroid || isIOS ? 'counterFirebase' : null,
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
 
     /// クラッシュハンドラ(Flutterフレームワーク内でスローされたすべてのエラー)
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -74,8 +70,7 @@ void main() async {
 }
 
 /// Providerの初期化
-/// カウンター用のプロバイダー
-final counterProvider = StateNotifierProvider.autoDispose<Counter, int>((ref) {
+final counterProvider = StateNotifierProvider<Counter, int>((ref) {
   return Counter();
 });
 
@@ -103,7 +98,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// ホーム画面
+/// ホームページ画面
 class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
@@ -128,16 +123,14 @@ class MyHomePageState extends ConsumerState<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    /// ログイン状態の確認
-    FirebaseAuth.instance.authStateChanges().listen(
-      (User? user) {
-        if (user == null) {
-          ref.watch(userEmailProvider.state).state = 'ログインしていません';
-        } else {
-          ref.watch(userEmailProvider.state).state = user.email!;
-        }
-      },
-    );
+    /// ユーザー情報の取得
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
+        ref.watch(userEmailProvider.state).state = 'ログインしていません';
+      } else {
+        ref.watch(userEmailProvider.state).state = user.email!;
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -155,70 +148,97 @@ class MyHomePageState extends ConsumerState<MyHomePage> {
             ],
           ),
 
-          /// 各ページへの遷移(認証不要)
-          _PagePushButton(
-              context, 'ノーマルカウンター', const NormalCounterPage(), Colors.blue),
-          _PagePushButton(context, 'クラッシュページ', const CrashPage(), Colors.blue),
-          _PagePushButton(context, 'Remote Configカウンター',
-              const RemoteConfigPage(), Colors.blue),
-          _PagePushButton(context, '機械学習ページ', const MLPage(), Colors.blue),
-
-          /// 認証ページへ遷移
-          _PagePushButton(context, '認証ページ', const AuthPage(), Colors.red),
+          /// ページ遷移
+          const _PagePushButton(
+            buttonTitle: 'ノーマルカウンター',
+            pagename: NormalCounterPage(),
+          ),
+          const _PagePushButton(
+            buttonTitle: 'クラッシュページ',
+            pagename: CrashPage(),
+          ),
+          const _PagePushButton(
+            buttonTitle: 'Remote Configカウンター',
+            pagename: RemoteConfigPage(),
+          ),
+          const _PagePushButton(
+            buttonTitle: '機械学習ページ',
+            pagename: MLPage(),
+          ),
+          const _PagePushButton(
+            buttonTitle: '認証ページ',
+            pagename: AuthPage(),
+            bgColor: Colors.red,
+          ),
 
           /// 各ページへの遷移(認証後利用可能)
           /// 認証されていなかったらボタンを押せない状態にする
           FirebaseAuth.instance.currentUser?.uid != null
-              ? _PagePushButton(context, 'Firestoreカウンター',
-                  const FirestorePage(), Colors.green)
-              : Container(
-                  alignment: Alignment.center,
-                  child: const Text('Firestoreカウンターを開くためには認証してください。'),
-                ),
+              ? const _PagePushButton(
+                  buttonTitle: 'Firestoreカウンター',
+                  pagename: FirestorePage(),
+                  bgColor: Colors.green,
+                )
+              : const Text('Firestoreカウンターを開くためには認証してください。'),
           FirebaseAuth.instance.currentUser?.uid != null
-              ? _PagePushButton(context, 'Realtime Databaseカウンター',
-                  const RealtimeDatabasePage(), Colors.green)
-              : Container(
-                  alignment: Alignment.center,
-                  child: const Text('Realtime Databaseカウンターを開くためには認証してください。'),
-                ),
+              ? const _PagePushButton(
+                  buttonTitle: 'Realtime Databaseカウンター',
+                  pagename: RealtimeDatabasePage(),
+                  bgColor: Colors.green,
+                )
+              : const Text('Realtime Databaseカウンターを開くためには認証してください。'),
           FirebaseAuth.instance.currentUser?.uid != null
-              ? _PagePushButton(context, 'Cloud Storageページ',
-                  const CloudStoragePage(), Colors.green)
-              : Container(
-                  alignment: Alignment.center,
-                  child: const Text('Cloud Storageページを開くためには認証してください。'),
-                ),
+              ? const _PagePushButton(
+                  buttonTitle: 'Cloud Storageページ',
+                  pagename: CloudStoragePage(),
+                  bgColor: Colors.green,
+                )
+              : const Text('Cloud Storageページを開くためには認証してください。'),
           FirebaseAuth.instance.currentUser?.uid != null
-              ? _PagePushButton(context, 'Cloud Functionsページ',
-                  const CloudFunctionsPage(), Colors.green)
-              : Container(
-                  alignment: Alignment.center,
-                  child: const Text('Cloud Functionsページを開くためには認証してください。'),
-                ),
+              ? const _PagePushButton(
+                  buttonTitle: 'Cloud Functionsページ',
+                  pagename: CloudFunctionsPage(),
+                  bgColor: Colors.green,
+                )
+              : const Text('Cloud Functionsページを開くためには認証してください。'),
         ],
       ),
     );
   }
 }
 
-/// ページ遷移ボタン
-class _PagePushButton extends Container {
-  _PagePushButton(
-      BuildContext context, String buttonTitle, pagename, Color bgColor)
-      : super(
-          padding: const EdgeInsets.all(10),
-          child: ElevatedButton(
-            onPressed: () {
-              AnalyticsService().logPage(buttonTitle);
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => pagename));
-            },
-            style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(bgColor)),
-            child: Text(buttonTitle),
-          ),
+/// ページ遷移のボタン
+class _PagePushButton extends StatelessWidget {
+  const _PagePushButton({
+    Key? key,
+    required this.buttonTitle,
+    required this.pagename,
+    this.bgColor = Colors.blue,
+  }) : super(key: key);
+
+  final String buttonTitle;
+  final dynamic pagename;
+  final Color bgColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all(bgColor),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        child: Text(buttonTitle),
+      ),
+      onPressed: () {
+        AnalyticsService().logPage(buttonTitle);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => pagename),
         );
+      },
+    );
+  }
 }
 
 /// Analyticsの実装
